@@ -1,0 +1,58 @@
+# Implementation Plan: Authentication & Dynamic Features
+
+## Goal Description
+Transform the app from a static prototype into a fully dynamic, user-aware personal finance assistant. This involves adding user authentication, wiring all screens to a central persistent data store, and implementing "smart" features like AI categorization and gamified streaks.
+
+## User Review Required
+> [!IMPORTANT]
+> **Authentication Strategy:** Since we are currently local-first, the "Login/Signup" will simulate a backend experience but store credentials/profile locally using `AsyncStorage` (or simple pin/biometric simulation) to meet the user's "Account Login" requirement without needing a deployed backend server immediately.
+
+## Proposed Changes
+
+### 1. Authentication Module (`/context`, `/screens/auth`)
+-   **New `AuthContext.tsx`**: Manages user state (`user`, `isLoading`, `login`, `signup`, `logout`).
+-   **New `LoginScreen.tsx`**: Professional UI with Email/Password fields.
+-   **New `SignupScreen.tsx`**: Registration flow.
+-   **New `OnboardingScreen.tsx`**: Collects initial user preferences (Name, Currency).
+
+### 2. Dynamic Data Engine ([/context/DataContext.tsx](file:///d:/New%20folder/ai-finance-coach/context/DataContext.tsx))
+-   **Enhance**: Add CRUD methods for [Goals](file:///d:/New%20folder/ai-finance-coach/screens/GoalsScreen.tsx#12-312) (add/edit/delete).
+-   **Enhance**: Add CRUD methods for `Challenges`.
+-   **Logic**: Implement `checkStreak()` to run on app open.
+-   **Logic**: Implement `autoCategorize(description)` helper.
+
+### 3. Screen Integration
+-   **[HomeScreen.tsx](file:///d:/New%20folder/ai-finance-coach/screens/HomeScreen.tsx)**:
+    -   Replace `mockTransactions` with [useData().transactions](file:///d:/New%20folder/ai-finance-coach/context/DataContext.tsx#209-216).
+    -   Calculate "Total Balance", "Income", "Expense" dynamically.
+    -   Show actual "Recent Transactions".
+-   **[AnalyzeScreen.tsx](file:///d:/New%20folder/ai-finance-coach/screens/AnalyzeScreen.tsx)**:
+    -   Feed real transaction data into Charts.
+    -   Calculate "Spending Forecast" based on actual history.
+-   **[GoalsScreen.tsx](file:///d:/New%20folder/ai-finance-coach/screens/GoalsScreen.tsx)**:
+    -   Show real goals from context.
+    -   Allow user to "Create Goal".
+
+### 4. Smart Feature Logic
+-   **AI Categorization**:
+    -   Map keywords (e.g., "McDonalds", "Uber") to categories automatically.
+-   **Financial Term of the Day**:
+    -   Static list of 50+ terms, rotates daily based on date.
+-   **Habit Streak**:
+    -   Compare `lastLoginDate` with `today`. Increment if consecutive, reset if gap.
+
+## Verification Plan
+
+### Manual Verification
+1.  **Auth Flow**:
+    -   Sign up as "New User".
+    -   Restart app -> Should remain logged in.
+    -   Logout -> Should go to Login screen.
+2.  **Data Persistence**:
+    -   Add a transaction (e.g., "Test Expense ₹500").
+    -   Check Home Screen -> Balance updates.
+    -   Check Analyze Screen -> Charts update.
+    -   Restart App -> Transaction persists.
+3.  **Smart Features**:
+    -   Add transaction "Uber" -> Should auto-select "Transport".
+    -   Check "Streak" -> Should be 1 (for new user).
